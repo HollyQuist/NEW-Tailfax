@@ -60,7 +60,7 @@ export default function App() {
           max_tokens: 8000,
           system: `You are a Monday.com data agent. Call get_board_items_page with boardId=${info.b}, includeColumns=true, limit=500. Return ONLY a raw JSON array. No markdown, no backticks, no text. Start with [ end with ]. Each item: {"sn":"<name>","year":"<text_mkr4dfxv or text_mkrvqp10>","reg":"<text_mknyb7mw>","status":"<color_mkny5szn label>","country":"<country_mkqpm9an>","aftt":<aftt_mkms9wnq>,"landings":<landings_mkmswqc6>,"ask":<numbers3>,"sold":<numeric_mkq21mk1>,"eng":"<eng_prog_mkmrv5f3>","avionics":"<dropdown_mkqpmryr>","insp36":"<36_month_inspection_mkmrvryb>","listDate":"<date4>","saleDate":"<date_mkrm73dv or date_mkr5v5r7>","pax":<numbers4>,"wifi":"<dropdown_mkqp3zhk>"} Status values: "For Sale","Under Contract","Recently Sold","Not for Sale". Use 0 for missing numbers, "" for missing strings.`,
           messages: [{ role: "user", content: `Fetch board ${info.b} for ${mdl}. JSON array only.` }],
-          mcp_servers: [{ type: "url", url: "https://mcp.monday.com/mcp", name: "monday" }]
+          mcp_servers: [{ type: "url", url: "https://mcp.monday.com/mcp", name: "monday", authorization_token: import.meta.env.VITE_MONDAY_TOKEN || "" }]
         })
       })
       if (!res.ok) { const t = await res.text(); setDbg({ status: res.status, body: t.slice(0, 800) }); throw new Error(`HTTP ${res.status}`) }
