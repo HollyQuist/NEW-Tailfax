@@ -30,6 +30,7 @@ jobs:
       - run: npm run build
         env:
           VITE_ANTHROPIC_KEY: ${{ secrets.VITE_ANTHROPIC_KEY }}
+          VITE_MONDAY_TOKEN: ${{ secrets.VITE_MONDAY_TOKEN }}
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
