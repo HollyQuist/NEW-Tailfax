@@ -4,6 +4,7 @@ import { MODELS } from "./data/models"
 import { VREF } from "./data/vref"
 import { DEFAULT_ADJS } from "./data/adjustments"
 import { vrefLookup } from "./utils"
+import { fetchBoard } from "./monday"
 import GlobalStyles from "./components/GlobalStyles"
 import Ticker from "./components/Ticker"
 import Header from "./components/Header"
@@ -46,13 +47,8 @@ export default function App() {
     const info = MODELS[mdl]; if (!info) return
     setLoading(true); setError(null); setDbg(null); setAircraft([])
     try {
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001"
-      const res = await fetch(`${apiBase}/api/board/${info.b}`)
-      if (!res.ok) { const t = await res.text(); setDbg({ status: res.status, body: t.slice(0, 800) }); throw new Error(`HTTP ${res.status}`) }
-      const parsed = await res.json()
-      if (parsed.error) throw new Error(parsed.error)
-      if (!Array.isArray(parsed)) throw new Error("Not an array")
-      setDbg({ count: parsed.length, preview: JSON.stringify(parsed[0]).slice(0, 300) })
+      const parsed = await fetchBoard(info.b)
+      setDbg({ count: parsed.length })
       setAircraft(parsed)
     } catch (e) { setError(e.message) }
     finally { setLoading(false) }
