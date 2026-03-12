@@ -4,6 +4,7 @@ import { MODELS } from "./data/models"
 import { VREF } from "./data/vref"
 import { DEFAULT_ADJS } from "./data/adjustments"
 import { vrefLookup } from "./utils"
+import { fetchBoard } from "./monday"
 import GlobalStyles from "./components/GlobalStyles"
 import Ticker from "./components/Ticker"
 import Header from "./components/Header"
@@ -46,32 +47,8 @@ export default function App() {
     const info = MODELS[mdl]; if (!info) return
     setLoading(true); setError(null); setDbg(null); setAircraft([])
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY || "",
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-          "anthropic-beta": "mcp-client-2025-04-04"
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 8000,
-          system: `You are a Monday.com data agent. Call get_board_items_page with boardId=${info.b}, includeColumns=true, limit=500. Return ONLY a raw JSON array. No markdown, no backticks, no text. Start with [ end with ]. Each item: {"sn":"<name>","year":"<text_mkr4dfxv or text_mkrvqp10>","reg":"<text_mknyb7mw>","status":"<color_mkny5szn label>","country":"<country_mkqpm9an>","aftt":<aftt_mkms9wnq>,"landings":<landings_mkmswqc6>,"ask":<numbers3>,"sold":<numeric_mkq21mk1>,"eng":"<eng_prog_mkmrv5f3>","avionics":"<dropdown_mkqpmryr>","insp36":"<36_month_inspection_mkmrvryb>","listDate":"<date4>","saleDate":"<date_mkrm73dv or date_mkr5v5r7>","pax":<numbers4>,"wifi":"<dropdown_mkqp3zhk>"} Status values: "For Sale","Under Contract","Recently Sold","Not for Sale". Use 0 for missing numbers, "" for missing strings.`,
-          messages: [{ role: "user", content: `Fetch board ${info.b} for ${mdl}. JSON array only.` }],
-          mcp_servers: [{ type: "url", url: "https://mcp.monday.com/mcp", name: "monday", authorization_token: import.meta.env.VITE_MONDAY_TOKEN || "" }]
-        })
-      })
-      if (!res.ok) { const t = await res.text(); setDbg({ status: res.status, body: t.slice(0, 800) }); throw new Error(`HTTP ${res.status}`) }
-      const d = await res.json()
-      if (d.error) throw new Error(d.error.message || JSON.stringify(d.error))
-      const allText = (d.content || []).map(b => b.type === "text" ? b.text : b.type === "mcp_tool_result" ? (b.content || []).map(c => c.text || "").join("") : "").join("\n")
-      setDbg({ stop: d.stop_reason, types: (d.content || []).map(b => b.type), preview: allText.slice(0, 500) })
-      const m = allText.match(/\[[\s\S]*\]/)
-      if (!m) throw new Error(`No JSON array. Preview: ${allText.slice(0, 200)}`)
-      const parsed = JSON.parse(m[0])
-      if (!Array.isArray(parsed)) throw new Error("Not an array")
+      const parsed = await fetchBoard(info.b)
+      setDbg({ count: parsed.length })
       setAircraft(parsed)
     } catch (e) { setError(e.message) }
     finally { setLoading(false) }
